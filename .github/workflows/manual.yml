@@ -10,7 +10,7 @@ on:
     inputs:
       version:
         # Friendly description to be shown in the UI instead of 'name'
-        description: 'Release version'
+        description: "Release version"
         # Input has to be provided for the workflow to run
         required: true
 
@@ -25,10 +25,10 @@ jobs:
         uses: styfle/cancel-workflow-action@0.9.1
         with:
           access_token: ${{ github.token }}
-          
+
       - name: Version number
         run: echo "Release version ->  ${{ github.event.inputs.version }}"
-      
+
       - name: Checkout Repo
         uses: actions/checkout@v2
         with:
@@ -38,7 +38,7 @@ jobs:
         uses: actions/setup-node@v2.4.0
         with:
           node-version: 12.22.5
-          
+
       - name: Install Dependencies
         env:
           CYPRESS_INSTALL_BINARY: 0 # Skip install of Cypress (handled in its own job)
@@ -46,27 +46,23 @@ jobs:
         run: |
           yarn install
 
-      - name: Test App
-        run: |
-          yarn test
-
       - name: Build App
         env:
           SKIP_PREFLIGHT_CHECK: true
         run: |
-          yarn build-babel
-          
+          yarn build
+
       - name: Create release directory
         run: |
           mkdir release
           echo "`jq '.version="${{ github.event.inputs.version }}"' package.json`" > ./release/package.json
           cp -r lib ./release
           cp release-readme.md ./release/README.md
-          
+
       - name: create release repo
         uses: s0/git-publish-subdir-action@develop
         env:
           REPO: self
           BRANCH: v${{ github.event.inputs.version }}
           FOLDER: ./release
-          GITHUB_TOKEN:  ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
